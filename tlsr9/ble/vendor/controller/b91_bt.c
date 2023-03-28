@@ -27,6 +27,7 @@
 #include "plic.h"
 #include "stack/ble/controller/ble_controller.h"
 #include "stack/ble/controller/os_sup.h"
+#include <zephyr/drivers/gpio.h>
 
 /* Module defines */
 #define BLE_THREAD_STACK_SIZE CONFIG_B91_BLE_CTRL_THREAD_STACK_SIZE
@@ -54,6 +55,11 @@ static struct k_thread b91_bt_controller_thread_data;
  */
 K_SEM_DEFINE(controller_sem, 0, BLE_CONTROLLER_SEMAPHORE_MAX);
 
+#define LED2_NODE DT_ALIAS(led2)
+static const struct gpio_dt_spec led2 = GPIO_DT_SPEC_GET(LED2_NODE, gpios);
+#define LED0_NODE DT_ALIAS(led0)
+static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+
 /**
  * @brief    BLE semaphore callback.
  */
@@ -73,7 +79,9 @@ _attribute_ram_code_ void rf_irq_handler(const void *param)
 {
 	(void)param;
 
+	gpio_pin_set_dt(&led2, 1);
 	blc_sdk_irq_handler();
+	gpio_pin_set_dt(&led2, 0);
 }
 
 /**
@@ -83,7 +91,9 @@ _attribute_ram_code_ void stimer_irq_handler(const void *param)
 {
 	(void)param;
 
+	gpio_pin_set_dt(&led, 1);
 	blc_sdk_irq_handler();
+	gpio_pin_set_dt(&led, 0);
 }
 
 /**
@@ -156,6 +166,9 @@ static int b91_bt_hci_rx_handler(void)
  */
 static void b91_bt_controller_thread()
 {
+	gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+	gpio_pin_configure_dt(&led2, GPIO_OUTPUT_ACTIVE);
+
 	while (b91_bt_state == B91_BT_CONTROLLER_STATE_ACTIVE ||
 		b91_bt_state == B91_BT_CONTROLLER_STATE_STOPPING) {
 		k_sem_take(&controller_sem, K_FOREVER);

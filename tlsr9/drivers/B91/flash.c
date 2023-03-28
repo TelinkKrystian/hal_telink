@@ -31,6 +31,8 @@
 #include "sys.h"
 #include "core.h"
 #include "stimer.h"
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/gpio.h>
 
 #define DISABLE_BTB     __asm__("csrci 	0x7D0,8")
 #define ENABLE_BTB      __asm__("csrsi 	0x7D0,8")
@@ -149,6 +151,9 @@ _attribute_text_sec_ void flash_erase_sector(unsigned long addr)
 extern unsigned long irqs1
 #endif // CHECK_PENDING_IRQS
 
+
+#define LED1_NODE DT_ALIAS(led1)
+static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 /**
  * @brief 		This function writes the buffer's content to a page.
  * @param[in]   addr	- the start address of the page.
@@ -159,6 +164,7 @@ extern unsigned long irqs1
 _attribute_ram_code_sec_noinline_ void flash_write_page_ram(unsigned long addr, unsigned long len, unsigned char *buf)
 {
 	unsigned int r=plic_enter_critical_sec(s_flash_preempt_config.preempt_en,s_flash_preempt_config.threshold);
+	gpio_pin_set_dt(&led, 1);
 	mspi_stop_xip();
 	flash_send_cmd(FLASH_WRITE_ENABLE_CMD);
 	flash_send_cmd(FLASH_WRITE_CMD);
@@ -177,12 +183,15 @@ _attribute_ram_code_sec_noinline_ void flash_write_page_ram(unsigned long addr, 
 	irqs1 = (*(volatile unsigned long*)(0 + (0xe4001000)));
 #endif // CHECK_PENDING_IRQS
 
+	gpio_pin_set_dt(&led, 0);
 	plic_exit_critical_sec(s_flash_preempt_config.preempt_en,r);
 }
 _attribute_text_sec_ void flash_write_page(unsigned long addr, unsigned long len, unsigned char *buf)
 {
 	unsigned int ns = PAGE_SIZE - (addr & 0xff);
 	int nw = 0;
+
+	gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
 
 	do{
 		nw = len > ns ? ns : len;
