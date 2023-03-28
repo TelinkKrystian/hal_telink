@@ -42,6 +42,9 @@
 #include "reg_include/register_b91.h"
 #include "compiler.h"
 
+// TEMPORARY ONE, TODO: Remove it after DFU issue will be solved
+#define CHECK_PENDING_IRQS		(0)		// Enable logs that show if pending interrupt showed up while writing to the flash (being in critical section)
+
 typedef struct
 {
 	unsigned char preempt_en;

@@ -145,6 +145,10 @@ _attribute_text_sec_ void flash_erase_sector(unsigned long addr)
 	ENABLE_BTB;
 }
 
+#if CHECK_PENDING_IRQS
+extern unsigned long irqs1
+#endif // CHECK_PENDING_IRQS
+
 /**
  * @brief 		This function writes the buffer's content to a page.
  * @param[in]   addr	- the start address of the page.
@@ -168,6 +172,11 @@ _attribute_ram_code_sec_noinline_ void flash_write_page_ram(unsigned long addr, 
 	mspi_high();
 	flash_wait_done();
 	CLOCK_DLY_5_CYC;
+
+#if CHECK_PENDING_IRQS
+	irqs1 = (*(volatile unsigned long*)(0 + (0xe4001000)));
+#endif // CHECK_PENDING_IRQS
+
 	plic_exit_critical_sec(s_flash_preempt_config.preempt_en,r);
 }
 _attribute_text_sec_ void flash_write_page(unsigned long addr, unsigned long len, unsigned char *buf)
