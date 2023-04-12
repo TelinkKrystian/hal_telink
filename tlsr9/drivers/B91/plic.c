@@ -38,8 +38,9 @@ _attribute_ram_code_sec_noinline_ unsigned int plic_enter_critical_sec(unsigned 
 	unsigned int r;
 	if(g_plic_preempt_en&&preempt_en)
 	{
-		plic_set_threshold(threshold);
 		r=0;
+		plic_set_threshold(threshold);
+		timer_interrupt_disable();
 	}
 	else
 	{
@@ -58,6 +59,7 @@ _attribute_ram_code_sec_noinline_ void  plic_exit_critical_sec(unsigned char pre
 {
 	if (g_plic_preempt_en&&preempt_en)
 	{
+		timer_interrupt_enable();
 		plic_set_threshold(0);
 	}
 	else

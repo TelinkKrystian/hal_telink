@@ -85,6 +85,13 @@ static inline unsigned int core_interrupt_disable(void){
 	return r;
 }
 
+static inline unsigned int timer_interrupt_disable(void){
+
+	unsigned int r;
+	read_csr (r, NDS_MIE);
+	clear_csr(NDS_MIE, BIT(7));
+	return r;
+}
 
 /**
  * @brief restore interrupts globally in the system. external,timer and software interrupts.
@@ -106,6 +113,13 @@ static inline void core_interrupt_enable(void)
 {
 	set_csr(NDS_MSTATUS,1<<3);
 	set_csr(NDS_MIE,1<<11 | 1 << 7 | 1 << 3);
+
+}
+
+static inline void timer_interrupt_enable(void)
+{
+	set_csr(NDS_MSTATUS,1<<3);
+	set_csr(NDS_MIE, 1 << 7);
 
 }
 #endif
