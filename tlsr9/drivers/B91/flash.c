@@ -148,7 +148,7 @@ _attribute_text_sec_ void flash_erase_sector(unsigned long addr)
 }
 
 #if CHECK_PENDING_IRQS
-extern unsigned long irqs1
+extern unsigned long irqs1;
 #endif // CHECK_PENDING_IRQS
 
 
